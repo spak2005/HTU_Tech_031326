@@ -1,0 +1,5 @@
+{
+  "name": "Arcana",
+  "description": "An AI Optimization Platform prototype that visually demonstrates AI agents scanning websites, analyzing problems, and fixing them to improve AI visibility.",
+  "requestFramePermissions": []
+}
