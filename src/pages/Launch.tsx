@@ -32,6 +32,18 @@ export default function Launch() {
   const [logs, setLogs] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState("components/ProductCard.js");
   const [selectedCheckpoint, setSelectedCheckpoint] = useState(3);
+  
+  const [showManualGuidance, setShowManualGuidance] = useState(false);
+  const [aiAgentStep, setAiAgentStep] = useState<"idle" | "thinking" | "generating" | "done">("idle");
+  const [aiAgentMessage, setAiAgentMessage] = useState("");
+  const [generatedCodeLines, setGeneratedCodeLines] = useState(0);
+  const [prState, setPrState] = useState<"none" | "ready" | "creating" | "created" | "deploying" | "deployed" | "declined" | "commented">("none");
+  const [currentMetrics, setCurrentMetrics] = useState({
+    visibility: 54,
+    accuracy: 61,
+    sentiment: 58,
+    coverage: 49
+  });
 
   const startAnalysis = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,33 +57,75 @@ export default function Launch() {
   const startFix = () => {
     setLaunchState("optimizing");
     setLogs([]);
+    setAiAgentStep("thinking");
+    setAiAgentMessage("AI analyzing repository...");
+    setGeneratedCodeLines(0);
+    setPrState("none");
     
-    const fixLogs = [
-      "Analyzing new-gaming-laptops branch...",
-      "Generating SEO-optimized descriptions...",
-      "Adding structured JSON-LD schema...",
-      "Enhancing product attributes...",
-      "Creating Pull Request..."
-    ];
-    
-    let logIndex = 0;
-    const logInterval = setInterval(() => {
-      if (logIndex < fixLogs.length) {
-        const currentLog = fixLogs[logIndex];
-        setLogs(prev => [...prev, currentLog]);
-        logIndex++;
-      } else {
-        clearInterval(logInterval);
-        setTimeout(() => setLaunchState("done"), 1000);
-      }
-    }, 800);
+    setTimeout(() => setAiAgentMessage("Thinking about optimization strategy..."), 1500);
+    setTimeout(() => setAiAgentMessage("Evaluating product metadata..."), 3000);
+    setTimeout(() => {
+      setAiAgentMessage("Generating structured schema...");
+      setAiAgentStep("generating");
+      
+      let lines = 0;
+      const interval = setInterval(() => {
+        lines += 3;
+        setGeneratedCodeLines(lines);
+        
+        if (lines === 9) setAiAgentMessage("Step 1: Adding schema markup");
+        if (lines === 24) setAiAgentMessage("Step 2: Updating product metadata");
+        if (lines === 39) setAiAgentMessage("Step 3: Improving product descriptions");
+        
+        if (lines >= 60) {
+          clearInterval(interval);
+          setAiAgentStep("done");
+          setAiAgentMessage("Optimization complete");
+          setPrState("ready");
+        }
+      }, 300);
+    }, 4500);
+  };
+
+  const createPR = () => {
+    setPrState("creating");
+    setTimeout(() => {
+      setPrState("created");
+    }, 2000);
+  };
+
+  const acceptPR = () => {
+    setPrState("deploying");
+    setTimeout(() => {
+      setPrState("deployed");
+      setLaunchState("done");
+      setCurrentMetrics({
+        visibility: 78,
+        accuracy: 84,
+        sentiment: 80,
+        coverage: 76
+      });
+    }, 3000);
+  };
+
+  const declinePR = () => {
+    setPrState("declined");
+    setLaunchState("done");
+  };
+
+  const commentPR = () => {
+    setPrState("commented");
   };
 
   const renderDiff = (original: string, optimized: string, type: 'original' | 'optimized') => {
     if (!original && !optimized) return "Select a file to view";
     
-    const origLines = (original || "").split('\n');
-    const optLines = (optimized || "").split('\n');
+    let origLines = (original || "").split('\n');
+    let optLines = (optimized || "").split('\n');
+    
+    if (type === 'optimized' && launchState === "optimizing" && (aiAgentStep === "generating" || aiAgentStep === "thinking")) {
+      optLines = optLines.slice(0, generatedCodeLines);
+    }
     
     if (type === 'original') {
       return origLines.map((line, i) => {
@@ -222,6 +276,59 @@ export default function Launch() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
+          <div className="bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-indigo-400" />
+              Current AI Performance
+            </h2>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                  <div className="text-sm text-zinc-400 mb-1">Visibility Score</div>
+                  <div className="text-2xl font-semibold text-violet-400">{currentMetrics.visibility}%</div>
+                </div>
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                  <div className="text-sm text-zinc-400 mb-1">Accuracy Score</div>
+                  <div className="text-2xl font-semibold text-blue-400">{currentMetrics.accuracy}%</div>
+                </div>
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                  <div className="text-sm text-zinc-400 mb-1">Sentiment Score</div>
+                  <div className="text-2xl font-semibold text-emerald-400">{currentMetrics.sentiment}%</div>
+                </div>
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                  <div className="text-sm text-zinc-400 mb-1">Coverage Score</div>
+                  <div className="text-2xl font-semibold text-pink-400">{currentMetrics.coverage}%</div>
+                </div>
+              </div>
+
+              <div className="h-48 flex items-end gap-8 px-4">
+                <div className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full bg-violet-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.visibility}%` }}>
+                    <div className="absolute inset-0 bg-violet-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                  </div>
+                  <span className="text-xs text-zinc-400 font-medium">Visibility</span>
+                </div>
+                <div className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full bg-blue-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.accuracy}%` }}>
+                    <div className="absolute inset-0 bg-blue-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                  </div>
+                  <span className="text-xs text-zinc-400 font-medium">Accuracy</span>
+                </div>
+                <div className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full bg-emerald-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.sentiment}%` }}>
+                    <div className="absolute inset-0 bg-emerald-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                  </div>
+                  <span className="text-xs text-zinc-400 font-medium">Sentiment</span>
+                </div>
+                <div className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full bg-pink-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.coverage}%` }}>
+                    <div className="absolute inset-0 bg-pink-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                  </div>
+                  <span className="text-xs text-zinc-400 font-medium">Coverage</span>
+                </div>
+              </div>
+            </div>
+
           <div className="flex justify-between items-end">
             <div>
               <h2 className="text-xl font-semibold">Pre-launch Analysis</h2>
@@ -230,7 +337,10 @@ export default function Launch() {
             
             {launchState === "comparison" && (
               <div className="flex gap-4">
-                <button className="bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg px-6 py-2.5 text-sm font-medium transition-colors">
+                <button 
+                  onClick={() => setShowManualGuidance(true)}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg px-6 py-2.5 text-sm font-medium transition-colors"
+                >
                   Do It Yourself
                 </button>
                 <button 
@@ -244,19 +354,164 @@ export default function Launch() {
             )}
           </div>
 
-          {/* Optimization Explanation Panel */}
+          {/* AI Agent Workspace Panel */}
           {(launchState === "optimizing" || launchState === "done") && (
-            <div className="bg-indigo-900/20 border border-indigo-500/30 rounded-xl p-4 flex gap-4">
-              <div className="p-2 bg-indigo-500/20 rounded-lg h-fit">
-                <Zap className="w-5 h-5 text-indigo-400" />
+            <div className="bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-6 mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">AI Agent Workspace</h2>
+                  <p className="text-sm text-zinc-400">Arcana is optimizing your repository</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-indigo-100 mb-1">AI Optimization Summary</h3>
-                <p className="text-sm text-indigo-200/70 leading-relaxed">
-                  Arcana AI detected missing structured product metadata and incomplete schema markup.
-                  The optimization adds Schema.org structured data, price metadata, and product attributes so AI assistants can correctly understand and recommend the product.
-                </p>
+              
+              <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800/50 font-mono text-sm">
+                <div className="flex items-center gap-3 text-indigo-400">
+                  {aiAgentStep !== "done" ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Zap className="w-4 h-4" />
+                    </motion.div>
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  )}
+                  <span className={aiAgentStep === "done" ? "text-emerald-400" : ""}>
+                    {aiAgentMessage}
+                    {aiAgentStep !== "done" && (
+                      <motion.span
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        ...
+                      </motion.span>
+                    )}
+                  </span>
+                </div>
               </div>
+              
+              {prState === "ready" && (
+                <div className="mt-6 flex justify-end">
+                  <button 
+                    onClick={createPR}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+                  >
+                    <GitBranch className="w-4 h-4" />
+                    Create Pull Request
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pull Request Workflow UI */}
+          {(prState !== "none" && prState !== "ready") && (
+            <div className="bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-6 mb-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                  <GitBranch className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Pull Request</h2>
+                  <p className="text-sm text-zinc-400">AI Optimization for New Section</p>
+                </div>
+              </div>
+              
+              {prState === "creating" && (
+                <div className="flex items-center gap-3 text-zinc-300">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Zap className="w-4 h-4 text-indigo-400" />
+                  </motion.div>
+                  Creating Pull Request...
+                </div>
+              )}
+              
+              {prState === "deploying" && (
+                <div className="flex items-start gap-3 text-zinc-300">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="mt-1"
+                  >
+                    <Zap className="w-4 h-4 text-indigo-400" />
+                  </motion.div>
+                  <div className="flex flex-col gap-1">
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0 }}>Deploying optimized code...</motion.span>
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>Updating website section...</motion.span>
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }}>Re-indexing product data...</motion.span>
+                  </div>
+                </div>
+              )}
+              
+              {(prState === "created" || prState === "commented" || prState === "declined" || prState === "deployed") && (
+                <div className="space-y-6">
+                  <div className="flex gap-6 text-sm bg-zinc-950 p-4 rounded-xl border border-zinc-800/50">
+                    <span className="text-zinc-300 font-medium">Files changed: <span className="text-white">3</span></span>
+                    <span className="text-emerald-400 font-medium">+ Lines added: 42</span>
+                    <span className="text-red-400 font-medium">- Lines removed: 12</span>
+                  </div>
+                  
+                  {prState === "declined" && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm">
+                      Pull request declined. No changes were deployed.
+                    </div>
+                  )}
+                  
+                  {prState === "deployed" && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-sm flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Changes successfully deployed to production. Metrics updated.
+                    </div>
+                  )}
+                  
+                  {prState === "commented" && (
+                    <div className="bg-zinc-800/50 border border-zinc-700 p-4 rounded-xl text-sm">
+                      <div className="flex items-center gap-2 text-zinc-300 font-medium mb-2">
+                        <MessageSquare className="w-4 h-4" /> Tech Manager Comment
+                      </div>
+                      <p className="text-zinc-400">
+                        "Please adjust pricing metadata and update product availability data before approval."
+                      </p>
+                      <div className="mt-3 text-xs text-amber-400">PR remains pending review.</div>
+                    </div>
+                  )}
+                  
+                  {(prState === "created" || prState === "commented") && (
+                    <div className="border-t border-zinc-800 pt-6">
+                      <h3 className="text-sm font-medium text-zinc-300 mb-4">Tech Manager Review</h3>
+                      <div className="flex flex-wrap gap-3">
+                        <button 
+                          onClick={acceptPR}
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Approve
+                        </button>
+                        <button 
+                          onClick={declinePR}
+                          className="bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Decline
+                        </button>
+                        <button 
+                          onClick={commentPR}
+                          className="bg-zinc-700 hover:bg-zinc-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        >
+                          <MessageSquare className="w-4 h-4" /> Add Comment
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -549,6 +804,102 @@ export default function Launch() {
             )}
           </div>
         </motion.div>
+      )}
+      {/* Manual Guidance Modal */}
+      {showManualGuidance && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#1e1e1e] border border-zinc-800 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl"
+          >
+            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-[#252526] rounded-t-2xl">
+              <h2 className="text-2xl font-bold text-white">Manual Optimization Guidance</h2>
+              <button onClick={() => setShowManualGuidance(false)} className="text-zinc-400 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-8">
+              {/* Visibility */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-violet-400 flex items-center gap-2">
+                  <Eye className="w-5 h-5" /> Visibility Guidance
+                </h3>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Visibility improves when AI assistants can easily identify your product pages. Ensure product pages contain detailed descriptions, structured metadata, pricing information, and customer reviews.
+                </p>
+                <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
+                  <h4 className="text-sm font-medium text-zinc-200 mb-2">Suggested Actions:</h4>
+                  <ul className="list-disc list-inside text-sm text-zinc-400 space-y-1">
+                    <li>Update website product descriptions</li>
+                    <li>Add structured metadata for products</li>
+                    <li>Improve product page content</li>
+                    <li>Include pricing information</li>
+                    <li>Add customer reviews and ratings</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Accuracy */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-blue-400 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5" /> Accuracy Guidance
+                </h3>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  AI assistants may provide incorrect recommendations when website data is outdated or inconsistent. Ensure pricing, availability, and product specifications are accurate and up to date.
+                </p>
+                <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
+                  <h4 className="text-sm font-medium text-zinc-200 mb-2">Suggested Actions:</h4>
+                  <ul className="list-disc list-inside text-sm text-zinc-400 space-y-1">
+                    <li>Fix incorrect pricing</li>
+                    <li>Update product availability</li>
+                    <li>Correct outdated information</li>
+                    <li>Remove inaccurate comparisons</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Sentiment */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" /> Sentiment Guidance
+                </h3>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Positive sentiment improves how AI assistants recommend your products. Adding verified reviews, testimonials, and clear value propositions helps AI systems interpret positive product perception.
+                </p>
+                <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
+                  <h4 className="text-sm font-medium text-zinc-200 mb-2">Suggested Actions:</h4>
+                  <ul className="list-disc list-inside text-sm text-zinc-400 space-y-1">
+                    <li>Encourage customer reviews</li>
+                    <li>Highlight positive testimonials</li>
+                    <li>Improve product descriptions</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Coverage */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-pink-400 flex items-center gap-2">
+                  <Activity className="w-5 h-5" /> Coverage Guidance
+                </h3>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Coverage improves when AI systems have access to more product details. Provide clear specifications, features, use cases, and comparisons.
+                </p>
+                <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
+                  <h4 className="text-sm font-medium text-zinc-200 mb-2">Suggested Actions:</h4>
+                  <ul className="list-disc list-inside text-sm text-zinc-400 space-y-1">
+                    <li>Add detailed product attributes</li>
+                    <li>Expand product specifications</li>
+                    <li>Include use cases and features</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );
