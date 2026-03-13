@@ -21,10 +21,10 @@ function StatusIndicator({ state }: { state: string }) {
   }
 
   if (state === 'active') {
-    return <span className="h-3.5 w-3.5 rounded-full bg-emerald-400 animate-pulse" />
+    return <span className="h-3.5 w-3.5 rounded-full bg-[#c73e88] animate-pulse shadow-[0_0_8px_rgba(199,62,136,0.5)]" />
   }
 
-  return <span className="h-3.5 w-3.5 rounded-full bg-slate-500" />
+  return <span className="h-3.5 w-3.5 rounded-full bg-zinc-600" />
 }
 
 interface AgentFeedProps {
@@ -41,16 +41,23 @@ export default function AgentFeed({ agents, agentStates, visibleEvents }: AgentF
   }, [visibleEvents.length])
 
   return (
-    <section className="h-full rounded-2xl border border-slate-700 bg-slate-950 text-slate-100 shadow-lg">
-      <div className="border-b border-slate-800 px-4 py-4 lg:px-5">
+    <section className="h-full rounded-2xl border border-[#551138]/30 bg-[#0e0610] text-zinc-100 shadow-[0_4px_32px_rgba(85,17,56,0.15)]">
+      <div className="border-b border-[#551138]/20 px-4 py-4 lg:px-5">
         <h2 className="text-lg font-semibold text-white">Agent Activity Feed</h2>
-        <p className="mt-1 text-xs text-slate-400">Live terminal stream</p>
+        <p className="mt-1 text-xs text-[#c73e88]/60">Live terminal stream</p>
       </div>
 
-      <div className="border-b border-slate-800 px-4 py-4 lg:px-5">
+      <div className="border-b border-[#551138]/20 px-4 py-4 lg:px-5">
         <ul className="space-y-2">
           {agents.map(agent => (
-            <li key={agent.id} className="flex items-center justify-between rounded-md bg-slate-900/70 px-3 py-2">
+            <li
+              key={agent.id}
+              className={`flex items-center justify-between rounded-lg px-3 py-2 transition-colors duration-300 ${
+                agentStates[agent.id] === 'active'
+                  ? 'bg-[#551138]/20 border border-[#551138]/30'
+                  : 'bg-white/[0.03] border border-transparent'
+              }`}
+            >
               <span className="font-mono text-sm">
                 {agent.icon} {agent.name}
               </span>
@@ -65,7 +72,7 @@ export default function AgentFeed({ agents, agentStates, visibleEvents }: AgentF
           {visibleEvents.map((event, index) => (
             <li
               key={`${event.agent}-${index}`}
-              className="rounded-md border border-slate-800 bg-slate-900/60 px-3 py-2 text-slate-200 animate-[fadeup_.35s_ease-out]"
+              className="rounded-lg border border-[#551138]/15 bg-[#551138]/[0.06] px-3 py-2 text-zinc-300 animate-[fadeup_.35s_ease-out]"
             >
               {event.renderedLine}
             </li>
