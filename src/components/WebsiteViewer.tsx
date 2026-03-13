@@ -190,7 +190,7 @@ export default function WebsiteViewer({ websiteUrl, companyName, scanStarted, ac
             >
               <div className="text-xs uppercase tracking-wide text-red-300">Pricing mismatch</div>
               <div className="mt-1 font-semibold">
-                Site says <span className="text-white">$599</span> | ChatGPT says{' '}
+                Site says <span className="text-white">$649.99</span> | ChatGPT says{' '}
                 <span className="text-red-300">$549</span>
               </div>
             </div>
