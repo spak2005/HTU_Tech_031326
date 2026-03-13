@@ -44,7 +44,7 @@ const FEED_EVENTS: FeedEvent[] = [
   { agent: 'secretShopper', delay: 950, line: '🕵️ Secret Shopper querying Claude: "best laptops under $1000"' },
   { agent: 'secretShopper', delay: 750, line: '🕵️ Claude response — Dell XPS mentioned ✅, outdated feature list ⚠️', annotation: 'outdated-info' },
   { agent: 'verifier', delay: 1100, line: '⚖️ Verifier cross-referencing AI responses with site data...' },
-  { agent: 'verifier', delay: 900, line: '⚖️ Pricing drift: ChatGPT says XPS 15 is $579, site says $599 ⚠️', annotation: 'pricing-mismatch' },
+  { agent: 'verifier', delay: 900, line: '⚖️ Pricing drift: ChatGPT says XPS 15 is $579, site says $649.99 ⚠️', annotation: 'pricing-mismatch' },
   { agent: 'verifier', delay: 900, line: '⚖️ Claude references discontinued "XPS 15 9520" model ⚠️' },
   { agent: 'verifier', delay: 750, line: '⚖️ 1 hallucination detected across 1 platform' },
   { agent: 'benchmarker', delay: 1100, line: '📊 Benchmarker analyzing competitors...' },
