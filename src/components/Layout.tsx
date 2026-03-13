@@ -45,12 +45,10 @@ export default function Layout() {
       <div className="min-h-screen bg-bg text-text">
         <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 lg:px-8 border-b border-border/60 bg-bg/80 backdrop-blur-xl">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25">
-              A
-            </div>
             <span className="text-lg font-semibold text-text-heading tracking-tight">
               ArcanAI
             </span>
+            <img src="/arcana-logo.png" alt="ArcanAI" className="h-8 w-8 rounded-full object-cover" />
           </Link>
           <button
             onClick={toggleTheme}
@@ -73,10 +71,8 @@ export default function Layout() {
       <header className="sticky top-0 z-50 border-b border-border/60 bg-bg/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/analysis" className="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-text-heading">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25">
-              A
-            </div>
             ArcanAI
+            <img src="/arcana-logo.png" alt="ArcanAI" className="h-8 w-8 rounded-full object-cover" />
           </Link>
 
           <nav className="flex items-center gap-1">

@@ -220,10 +220,8 @@ export default function LandingPage() {
       <footer className="relative px-6 py-10 border-t border-border">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-white text-xs font-bold">
-              A
-            </div>
             <span className="text-sm font-semibold text-text-heading">ArcanAI</span>
+            <img src="/arcana-logo.png" alt="ArcanAI" className="h-7 w-7 rounded-full object-cover" />
           </div>
           <p className="text-sm text-text">
             &copy; {new Date().getFullYear()} ArcanAI. All rights reserved.

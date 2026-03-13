@@ -23,9 +23,7 @@ export default function SignupPage() {
       <div className="relative w-full max-w-md" style={{ animation: 'fadeup 0.6s ease-out both' }}>
         <div className="rounded-2xl border border-border bg-surface p-8 md:p-10 shadow-sm">
           <div className="text-center mb-8">
-            <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/25">
-              A
-            </div>
+            <img src="/arcana-logo.png" alt="ArcanAI" className="mx-auto mb-5 h-12 w-12 rounded-full object-cover shadow-lg shadow-primary/25" />
             <h1 className="text-2xl font-bold text-text-heading tracking-tight">Create your account</h1>
             <p className="mt-2 text-sm text-text">Start optimizing your AI presence today</p>
           </div>
