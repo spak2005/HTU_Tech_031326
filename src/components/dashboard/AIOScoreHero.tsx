@@ -39,7 +39,7 @@ export default function AIOScoreHero({ score, delta }: AIOScoreHeroProps) {
 
   return (
     <section className="dashboard-panel overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(170,59,255,0.16),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(85,17,56,0.16),_transparent_55%)]" />
       <div className="relative grid gap-4 lg:grid-cols-[240px_1fr] lg:items-center">
         <div className="relative mx-auto h-52 w-full max-w-[220px] lg:h-56 lg:max-w-[240px]">
           <ResponsiveContainer width="100%" height="100%">
