@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { GitBranch } from "lucide-react";
+import { PolarAngleAxis, RadialBar, RadialBarChart, ResponsiveContainer } from 'recharts';
+import { CORE_METRICS, computeAioScore, getScoreBand } from '../data/dashboardMetrics';
 
 type FixMode = "diy" | "agent" | null;
 
@@ -133,7 +135,6 @@ export default function ImproveUpdate() {
     },
   });
   const [barsMounted, setBarsMounted] = useState(false);
-  const [pieDeg, setPieDeg] = useState(0);
 
   const toggleExpand = (id: string) =>
     setExpanded((prev) => (prev === id ? null : id));
@@ -222,15 +223,17 @@ export default function ImproveUpdate() {
     }));
   };
 
-  const getScoreColor = (score: number): string => {
-    if (score >= 80) return "#A8FF78";
-    if (score >= 60) return "#FFD93D";
-    return "#FF6B6B";
-  };
+  function scoreColor(score: number): string {
+    if (score <= 39) return '#ef4444';
+    if (score <= 59) return '#f97316';
+    if (score <= 79) return '#f59e0b';
+    return '#10b981';
+  }
 
-  const AIO_SCORE = 66;
-  const aioColor = getScoreColor(AIO_SCORE);
-  const aioDeg = (AIO_SCORE / 100) * 360;
+  const aioScore = computeAioScore(CORE_METRICS);
+  const band = getScoreBand(aioScore);
+
+  const [displayScore, setDisplayScore] = useState(0);
 
   useEffect(() => {
     const t = setTimeout(() => setBarsMounted(true), 80);
@@ -239,35 +242,53 @@ export default function ImproveUpdate() {
 
   useEffect(() => {
     if (!barsMounted) return;
-    const duration = 750;
+    const durationMs = 1200;
     const start = performance.now();
-    const tick = (now: number) => {
-      const elapsed = now - start;
-      const p = Math.min(elapsed / duration, 1);
-      setPieDeg(p * aioDeg);
-      if (p < 1) requestAnimationFrame(tick);
+    let rafId = 0;
+    const update = (now: number) => {
+      const progress = Math.min((now - start) / durationMs, 1);
+      setDisplayScore(Math.round(aioScore * progress));
+      if (progress < 1) rafId = requestAnimationFrame(update);
     };
-    const id = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(id);
-  }, [barsMounted, aioDeg]);
+    rafId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(rafId);
+  }, [barsMounted, aioScore]);
+
+  const radialData = useMemo(
+    () => [{ name: 'AIO', value: displayScore, fill: scoreColor(displayScore) }],
+    [displayScore]
+  );
 
   return (
     <div style={s.page}>
-      <div style={s.header}>
-        <div style={s.aioWrap}>
-          <div style={s.aioMeta}>
-            <span style={{ ...s.aioLabel, color: aioColor }}>AIO SCORE</span>
-            <div
-              style={{
-                ...s.aioPie,
-                backgroundImage: `conic-gradient(${aioColor} 0 ${pieDeg}deg, var(--color-surface-alt) ${pieDeg}deg 360deg)`,
-                boxShadow: `0 0 20px ${aioColor}66`,
-              }}
-            >
-              <div style={s.aioPieInner}>
-                <span style={{ ...s.aioPieNumber, color: aioColor }}>{AIO_SCORE}</span>
-              </div>
+      <div className="flex justify-end px-8 pt-5 pb-2">
+        <div className="rounded-2xl border border-border bg-surface p-4 flex items-center gap-4 shadow-sm">
+          <div className="relative h-16 w-16">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart
+                data={radialData}
+                startAngle={210}
+                endAngle={-30}
+                innerRadius="70%"
+                outerRadius="100%"
+                barSize={8}
+              >
+                <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                <RadialBar dataKey="value" background cornerRadius={6} animationDuration={1200} />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xs font-black uppercase tracking-wider text-text-heading">AIO</span>
             </div>
+          </div>
+          <div>
+            <div className="flex items-end gap-1.5">
+              <span className="text-2xl font-black tracking-tight text-text-heading">{displayScore}</span>
+              <span className="pb-0.5 text-xs text-text">/100</span>
+            </div>
+            <span className={`mt-1 inline-block rounded-full bg-surface-alt px-2.5 py-0.5 text-[10px] font-semibold uppercase ${band.tone}`}>
+              {band.label}
+            </span>
           </div>
         </div>
       </div>
@@ -736,29 +757,6 @@ export default function ImproveUpdate() {
 
 const s = {
   page: { minHeight: "100vh", background: "var(--color-bg)", color: "var(--color-text-heading)", fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif' },
-  header: { display: "flex", justifyContent: "flex-end", alignItems: "center", padding: "20px 32px", background: "var(--color-bg)" },
-  aioWrap: { background: "var(--color-surface)", borderRadius: 12, padding: "16px 24px", border: "1px solid var(--color-border)" },
-  aioMeta: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
-  aioLabel: { fontSize: 16, letterSpacing: 3, textTransform: "uppercase", fontWeight: 800 },
-  aioPie: {
-    width: 52,
-    height: 52,
-    borderRadius: "50%",
-    backgroundColor: "var(--color-surface-alt)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  aioPieInner: {
-    width: 36,
-    height: 36,
-    borderRadius: "50%",
-    background: "var(--color-bg)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  aioPieNumber: { fontSize: 14, fontWeight: 700 },
   content: { padding: "24px 32px", maxWidth: 1120, margin: "0 auto" },
   mainLayout: { display: "flex", alignItems: "flex-start", gap: 24 },
   mainLeft: { flex: 1, minWidth: 0 },
