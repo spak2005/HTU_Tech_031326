@@ -366,7 +366,7 @@ export default function ImproveUpdate() {
               </button>
             </div>
 
-            {/* Teams — purple */}
+            {/* Teams */}
             <div style={{ ...s.integrationBox, ...s.integrationBoxTeams }}>
               <div style={s.integrationBoxHeader}>
                 <span style={{ ...s.integrationBoxIcon, background: "#5B2E91", color: "#fff" }}>T</span>
@@ -879,7 +879,7 @@ const s = {
     padding: "8px 16px",
     borderRadius: 8,
     border: "none",
-    background: "#4F46E5",
+    background: "#551138",
     color: "#fff",
     fontSize: 13,
     fontWeight: 600,
