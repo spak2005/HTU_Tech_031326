@@ -70,7 +70,7 @@ function CategoryCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.4 }}
       onClick={onSelect}
-      className="group relative w-full rounded-2xl border border-border bg-surface p-5 text-left transition-all duration-200 hover:border-purple-500/40 hover:shadow-[0_4px_24px_rgba(147,51,234,0.12)]"
+      className="group relative w-full rounded-2xl border border-border bg-surface p-5 text-left transition-all duration-200 hover:border-[#551138]/40 hover:shadow-[0_4px_24px_rgba(85,17,56,0.12)]"
     >
       <div className="flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-alt text-2xl">
@@ -186,7 +186,7 @@ function CategoryDetail({ category, onBack }: { category: ProductCategory; onBac
                         initial={{ width: 0 }}
                         animate={{ width: `${p.mention}%` }}
                         transition={{ delay: 0.4 + i * 0.08, duration: 0.6 }}
-                        className="h-full rounded-full bg-purple-500"
+                        className="h-full rounded-full bg-[#551138]"
                       />
                     </div>
                   </div>
