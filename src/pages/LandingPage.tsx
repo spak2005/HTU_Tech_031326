@@ -179,7 +179,7 @@ export default function LandingPage() {
                 { value: '5', label: 'AI Models Tracked' },
                 { value: '100+', label: 'Prompts Per Scan' },
                 { value: '< 60s', label: 'Full Analysis Time' },
-                { value: '4', label: 'Core Health Metrics' },
+                { value: '4', label: 'Core Health Bar' },
               ].map(stat => (
                 <div key={stat.label} className="text-center">
                   <div className="text-3xl md:text-4xl font-bold text-text-heading tracking-tight">
