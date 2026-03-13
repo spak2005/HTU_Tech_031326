@@ -10,7 +10,7 @@ interface CoreHealthBarsProps {
 export default function CoreHealthBars({ metrics, reveal }: CoreHealthBarsProps) {
   return (
     <ChartPanel
-      title="Core Health Metrics"
+      title="Core Health Bar"
       subtitle="Four primary signals powering the weighted AIO score."
     >
       <div className="grid gap-3 lg:grid-cols-2">
