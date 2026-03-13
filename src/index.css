@@ -1,17 +1,121 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-primary: #551138;
+  --color-primary-light: #7a1a52;
+  --color-primary-dark: #3d0c28;
+  --color-accent: #551138;
+  --color-accent-bg: rgba(85, 17, 56, 0.08);
+  --color-accent-border: rgba(85, 17, 56, 0.35);
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8f7f4;
+  --color-border: #e8e7ea;
+  --color-text: #6b6375;
+  --color-text-heading: #08060d;
+  --color-bg: #fafaf9;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Consolas, monospace;
 }
 
 @layer base {
   body {
-    @apply bg-zinc-950 text-zinc-50 antialiased;
+    @apply bg-bg text-text font-sans antialiased;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark {
+    --color-primary: #a02468;
+    --color-primary-light: #c73e88;
+    --color-primary-dark: #7a1a52;
+    --color-accent: #a02468;
+    --color-accent-bg: rgba(160, 36, 104, 0.1);
+    --color-accent-border: rgba(160, 36, 104, 0.35);
+    --color-surface: #18191f;
+    --color-surface-alt: #1e1f26;
+    --color-border: #2a2b34;
+    --color-text: #9ca3af;
+    --color-text-heading: #f3f4f6;
+    --color-bg: #111117;
   }
 }
 
-/* Custom scrollbar for a sleeker look */
+@layer components {
+  .dashboard-panel {
+    @apply relative rounded-2xl border border-border bg-surface p-5 lg:p-6;
+    box-shadow: 0 1px 3px rgba(8, 6, 13, 0.04), 0 14px 36px rgba(8, 6, 13, 0.05);
+  }
+
+  .dark .dashboard-panel {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 16px 36px rgba(0, 0, 0, 0.32);
+  }
+
+  .glass-card {
+    @apply relative rounded-2xl border border-white/[0.08] backdrop-blur-xl;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .dark .glass-card {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    top: 0%;
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    top: 92%;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeup {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
