@@ -199,11 +199,11 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   id="websiteUrl"
-                  type="url"
+                  type="text"
                   required
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
-                  placeholder="https://yourcompany.com"
+                  placeholder="yourcompany.com"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-heading placeholder:text-text/40 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition-all duration-200"
                 />
               </div>
