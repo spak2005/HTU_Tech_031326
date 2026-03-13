@@ -37,7 +37,7 @@ export default function Launch() {
   const [aiAgentStep, setAiAgentStep] = useState<"idle" | "thinking" | "generating" | "done">("idle");
   const [aiAgentMessage, setAiAgentMessage] = useState("");
   const [generatedCodeLines, setGeneratedCodeLines] = useState(0);
-  const [prState, setPrState] = useState<"none" | "ready" | "creating" | "created" | "deploying" | "deployed" | "declined" | "commented">("none");
+  const [prState, setPrState] = useState<"none" | "ready" | "creating" | "created">("none");
   const [currentMetrics, setCurrentMetrics] = useState({
     visibility: 54,
     accuracy: 61,
@@ -94,28 +94,6 @@ export default function Launch() {
     }, 2000);
   };
 
-  const acceptPR = () => {
-    setPrState("deploying");
-    setTimeout(() => {
-      setPrState("deployed");
-      setLaunchState("done");
-      setCurrentMetrics({
-        visibility: 78,
-        accuracy: 84,
-        sentiment: 80,
-        coverage: 76
-      });
-    }, 3000);
-  };
-
-  const declinePR = () => {
-    setPrState("declined");
-    setLaunchState("done");
-  };
-
-  const commentPR = () => {
-    setPrState("commented");
-  };
 
   const renderDiff = (original: string, optimized: string, type: 'original' | 'optimized') => {
     if (!original && !optimized) return "Select a file to view";
@@ -282,49 +260,106 @@ export default function Launch() {
               Current AI Performance
             </h2>
               
+              {/* Score Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
-                  <div className="text-sm text-zinc-400 mb-1">Visibility Score</div>
-                  <div className="text-2xl font-semibold text-violet-400">{currentMetrics.visibility}%</div>
-                </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
-                  <div className="text-sm text-zinc-400 mb-1">Accuracy Score</div>
-                  <div className="text-2xl font-semibold text-blue-400">{currentMetrics.accuracy}%</div>
-                </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
-                  <div className="text-sm text-zinc-400 mb-1">Sentiment Score</div>
-                  <div className="text-2xl font-semibold text-emerald-400">{currentMetrics.sentiment}%</div>
-                </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
-                  <div className="text-sm text-zinc-400 mb-1">Coverage Score</div>
-                  <div className="text-2xl font-semibold text-pink-400">{currentMetrics.coverage}%</div>
-                </div>
+                {[
+                  { label: "Visibility Score", value: currentMetrics.visibility, color: "text-violet-400", border: "border-violet-500/20", bg: "bg-violet-500/5", icon: Eye },
+                  { label: "Accuracy Score", value: currentMetrics.accuracy, color: "text-blue-400", border: "border-blue-500/20", bg: "bg-blue-500/5", icon: CheckCircle2 },
+                  { label: "Sentiment Score", value: currentMetrics.sentiment, color: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/5", icon: MessageSquare },
+                  { label: "Coverage Score", value: currentMetrics.coverage, color: "text-pink-400", border: "border-pink-500/20", bg: "bg-pink-500/5", icon: Activity },
+                ].map((card, i) => (
+                  <motion.div
+                    key={card.label}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className={`${card.bg} border ${card.border} rounded-xl p-4`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <card.icon className={`w-3.5 h-3.5 ${card.color} opacity-70`} />
+                      <div className="text-xs text-zinc-400">{card.label}</div>
+                    </div>
+                    <div className={`text-2xl font-bold ${card.color}`}>{card.value}%</div>
+                    <div className="mt-2 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <motion.div
+                        className={`h-full rounded-full ${card.color.replace("text-", "bg-")}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${card.value}%` }}
+                        transition={{ duration: 1, ease: "easeOut", delay: 0.3 + i * 0.1 }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
               </div>
 
-              <div className="h-48 flex items-end gap-8 px-4">
-                <div className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-violet-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.visibility}%` }}>
-                    <div className="absolute inset-0 bg-violet-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
+              {/* Bar Chart */}
+              <div className="mt-2">
+                <div className="text-xs text-zinc-500 mb-3 font-medium uppercase tracking-wider">Performance Overview</div>
+                <div className="flex gap-3">
+                  {/* Y-axis */}
+                  <div className="flex flex-col justify-between pb-7 pr-1" style={{ height: "192px" }}>
+                    {[100, 75, 50, 25, 0].map((tick) => (
+                      <span key={tick} className="text-xs text-zinc-600 text-right leading-none">{tick}</span>
+                    ))}
                   </div>
-                  <span className="text-xs text-zinc-400 font-medium">Visibility</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-blue-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.accuracy}%` }}>
-                    <div className="absolute inset-0 bg-blue-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
+
+                  {/* Bars + grid */}
+                  <div className="flex-1 relative" style={{ height: "192px" }}>
+                    {/* Horizontal grid lines */}
+                    <div className="absolute inset-0 pb-7 flex flex-col justify-between pointer-events-none">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div key={i} className="border-t border-zinc-800/60 w-full" />
+                      ))}
+                    </div>
+
+                    {/* Bars */}
+                    <div className="absolute inset-0 flex items-end gap-4 pb-7 px-2">
+                      {[
+                        { label: "Visibility", value: currentMetrics.visibility, gradFrom: "#7c3aed", gradTo: "#a78bfa", glow: "rgba(139,92,246,0.4)", text: "#a78bfa" },
+                        { label: "Accuracy",   value: currentMetrics.accuracy,   gradFrom: "#1d4ed8", gradTo: "#60a5fa", glow: "rgba(96,165,250,0.4)",  text: "#60a5fa" },
+                        { label: "Sentiment",  value: currentMetrics.sentiment,  gradFrom: "#065f46", gradTo: "#34d399", glow: "rgba(52,211,153,0.4)",  text: "#34d399" },
+                        { label: "Coverage",   value: currentMetrics.coverage,   gradFrom: "#9d174d", gradTo: "#f472b6", glow: "rgba(244,114,182,0.4)", text: "#f472b6" },
+                      ].map((bar, i) => {
+                        const MAX_BAR_H = 140; // px (out of 192 - 28 label area)
+                        const barH = (bar.value / 100) * MAX_BAR_H;
+                        return (
+                          <div key={bar.label} className="flex-1 flex flex-col items-center gap-0 h-full justify-end group">
+                            {/* Value tooltip on hover */}
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.8 + i * 0.15 }}
+                              className="text-xs font-semibold mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              style={{ color: bar.text }}
+                            >
+                              {bar.value}%
+                            </motion.div>
+
+                            {/* Bar */}
+                            <motion.div
+                              style={{
+                                height: `${barH}px`,
+                                background: `linear-gradient(to top, ${bar.gradFrom}, ${bar.gradTo})`,
+                                boxShadow: `0 0 16px ${bar.glow}`,
+                                transformOrigin: "bottom",
+                                borderRadius: "6px 6px 2px 2px",
+                              }}
+                              className="w-full"
+                              initial={{ scaleY: 0, opacity: 0 }}
+                              animate={{ scaleY: 1, opacity: 1 }}
+                              transition={{
+                                scaleY: { duration: 1.1, ease: [0.34, 1.2, 0.64, 1], delay: i * 0.15 },
+                                opacity: { duration: 0.3, delay: i * 0.15 },
+                              }}
+                            />
+
+                            {/* Label */}
+                            <span className="text-xs text-zinc-400 mt-2 font-medium">{bar.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <span className="text-xs text-zinc-400 font-medium">Accuracy</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-emerald-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.sentiment}%` }}>
-                    <div className="absolute inset-0 bg-emerald-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
-                  </div>
-                  <span className="text-xs text-zinc-400 font-medium">Sentiment</span>
-                </div>
-                <div className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-pink-500/20 rounded-t-lg relative group transition-all duration-500" style={{ height: `${currentMetrics.coverage}%` }}>
-                    <div className="absolute inset-0 bg-pink-500 rounded-t-lg opacity-50 group-hover:opacity-80 transition-opacity"></div>
-                  </div>
-                  <span className="text-xs text-zinc-400 font-medium">Coverage</span>
                 </div>
               </div>
             </div>
@@ -419,7 +454,7 @@ export default function Launch() {
                   <p className="text-sm text-zinc-400">AI Optimization for New Section</p>
                 </div>
               </div>
-              
+
               {prState === "creating" && (
                 <div className="flex items-center gap-3 text-zinc-300">
                   <motion.div
@@ -431,86 +466,17 @@ export default function Launch() {
                   Creating Pull Request...
                 </div>
               )}
-              
-              {prState === "deploying" && (
-                <div className="flex items-start gap-3 text-zinc-300">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="mt-1"
-                  >
-                    <Zap className="w-4 h-4 text-indigo-400" />
-                  </motion.div>
-                  <div className="flex flex-col gap-1">
-                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0 }}>Deploying optimized code...</motion.span>
-                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>Updating website section...</motion.span>
-                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }}>Re-indexing product data...</motion.span>
-                  </div>
-                </div>
-              )}
-              
-              {(prState === "created" || prState === "commented" || prState === "declined" || prState === "deployed") && (
-                <div className="space-y-6">
-                  <div className="flex gap-6 text-sm bg-zinc-950 p-4 rounded-xl border border-zinc-800/50">
-                    <span className="text-zinc-300 font-medium">Files changed: <span className="text-white">3</span></span>
-                    <span className="text-emerald-400 font-medium">+ Lines added: 42</span>
-                    <span className="text-red-400 font-medium">- Lines removed: 12</span>
-                  </div>
-                  
-                  {prState === "declined" && (
-                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm">
-                      Pull request declined. No changes were deployed.
-                    </div>
-                  )}
-                  
-                  {prState === "deployed" && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-sm flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Changes successfully deployed to production. Metrics updated.
-                    </div>
-                  )}
-                  
-                  {prState === "commented" && (
-                    <div className="bg-zinc-800/50 border border-zinc-700 p-4 rounded-xl text-sm">
-                      <div className="flex items-center gap-2 text-zinc-300 font-medium mb-2">
-                        <MessageSquare className="w-4 h-4" /> Tech Manager Comment
-                      </div>
-                      <p className="text-zinc-400">
-                        "Please adjust pricing metadata and update product availability data before approval."
-                      </p>
-                      <div className="mt-3 text-xs text-amber-400">PR remains pending review.</div>
-                    </div>
-                  )}
-                  
-                  {(prState === "created" || prState === "commented") && (
-                    <div className="border-t border-zinc-800 pt-6">
-                      <h3 className="text-sm font-medium text-zinc-300 mb-4">Tech Manager Review</h3>
-                      <div className="flex flex-wrap gap-3">
-                        <button 
-                          onClick={acceptPR}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                        >
-                          <CheckCircle2 className="w-4 h-4" /> Approve
-                        </button>
-                        <button 
-                          onClick={declinePR}
-                          className="bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          Decline
-                        </button>
-                        <button 
-                          onClick={commentPR}
-                          className="bg-zinc-700 hover:bg-zinc-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                        >
-                          <MessageSquare className="w-4 h-4" /> Add Comment
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+
+              {prState === "created" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="flex items-center gap-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 p-4 rounded-xl text-sm"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-indigo-400 shrink-0" />
+                  Pull request created successfully.
+                </motion.div>
               )}
             </div>
           )}
