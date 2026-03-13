@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { GitBranch } from "lucide-react";
 
 type FixMode = "diy" | "agent" | null;
 
@@ -15,6 +16,7 @@ interface HealthMetric {
 interface ConnectionConfig {
   connected: boolean;
   url: string;
+  token?: string;
 }
 
 interface ConnectionsState {
@@ -108,7 +110,6 @@ const FIX_LOGS: string[] = [
   "Detecting missing schema…",
   "Generating structured data…",
   "Updating product descriptions…",
-  "Creating Pull Request…",
 ];
 
 export default function ImproveUpdate() {
@@ -120,13 +121,15 @@ export default function ImproveUpdate() {
   const [fixState, setFixState] = useState<
     "idle" | "fixing" | "pr" | "deploying" | "rescanning" | "done"
   >("idle");
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<Record<string, string[]>>({});
+  const [prCreated, setPrCreated] = useState<Record<string, boolean>>({});
   const [connections, setConnections] = useState<ConnectionsState>({
-    github: { connected: false, url: "https://github.com/your-org/your-repo" },
-    slack: { connected: false, url: "https://your-workspace.slack.com" },
+    github: { connected: false, url: "https://github.com/your-org/your-repo", token: "" },
+    slack: { connected: false, url: "https://your-workspace.slack.com", token: "" },
     teams: {
       connected: false,
       url: "https://teams.microsoft.com/l/channel/your-chat",
+      token: "",
     },
   });
   const [barsMounted, setBarsMounted] = useState(false);
@@ -138,15 +141,18 @@ export default function ImproveUpdate() {
   const setFixMode = (metricId: string, m: FixMode) =>
     setMode((prev) => ({ ...prev, [metricId]: m }));
 
-  const startFix = () => {
+  const startFix = (metricId: string) => {
     setFixState("fixing");
-    setLogs([]);
+    setLogs((prev) => ({ ...prev, [metricId]: [] }));
 
     let index = 0;
     const interval = setInterval(() => {
       if (index < FIX_LOGS.length) {
         const next = FIX_LOGS[index];
-        setLogs((prev) => [...prev, next]);
+        setLogs((prev) => ({
+          ...prev,
+          [metricId]: [...(prev[metricId] ?? []), next],
+        }));
         index += 1;
       } else {
         clearInterval(interval);
@@ -155,25 +161,32 @@ export default function ImproveUpdate() {
     }, 800);
   };
 
-  const approvePR = () => {
-    setFixState("deploying");
-    setTimeout(() => {
-      setFixState("rescanning");
-      setTimeout(() => {
-        setFixState("done");
-      }, 2500);
-    }, 1800);
+  const onCreatePullRequest = (metricId: string) => {
+    setPrCreated((prev) => ({ ...prev, [metricId]: true }));
+    setLogs((prev) => ({
+      ...prev,
+      [metricId]: [
+        ...(prev[metricId] ?? []),
+        "Creating pull request…",
+        "Pull request created.",
+      ],
+    }));
   };
 
   const onLooksGood = () => {
     setFixState("idle");
+    setLogs((prev) =>
+      expanded
+        ? { ...prev, [expanded]: [...(prev[expanded] ?? []), "Done."] }
+        : prev
+    );
     setExpanded(null);
   };
 
   const launchAgent = (metricId: string) => {
     setAgentLaunched((prev) => ({ ...prev, [metricId]: true }));
     if (fixState === "idle" || fixState === "done") {
-      startFix();
+      startFix(metricId);
     }
   };
 
@@ -191,9 +204,21 @@ export default function ImproveUpdate() {
   };
 
   const connectService = (key: keyof ConnectionsState) => {
+    setConnections((prev) => {
+      const c = prev[key];
+      const hasUrl = !!c.url?.trim();
+      const hasToken = !!(c as { token?: string }).token?.trim();
+      return {
+        ...prev,
+        [key]: { ...c, connected: hasUrl && hasToken },
+      };
+    });
+  };
+
+  const updateConnectionToken = (key: keyof ConnectionsState, value: string) => {
     setConnections((prev) => ({
       ...prev,
-      [key]: { ...prev[key], connected: !!prev[key].url },
+      [key]: { ...prev[key], token: value },
     }));
   };
 
@@ -272,6 +297,15 @@ export default function ImproveUpdate() {
                 onChange={(e) => updateConnectionUrl("github", e.target.value)}
                 placeholder="https://github.com/org/repo"
               />
+              {connections.github.url && (
+                <input
+                  style={s.integrationBoxInput}
+                  type="password"
+                  value={connections.github.token ?? ""}
+                  onChange={(e) => updateConnectionToken("github", e.target.value)}
+                  placeholder="GitHub access token (required)"
+                />
+              )}
               <button
                 style={{
                   ...s.integrationBoxBtn,
@@ -279,7 +313,11 @@ export default function ImproveUpdate() {
                   color: connections.github.connected ? "#8b949e" : "#fff",
                   border: connections.github.connected ? "1px solid #30363d" : "none",
                 }}
-                disabled={connections.github.connected}
+                disabled={
+                  connections.github.connected ||
+                  !connections.github.url?.trim() ||
+                  !(connections.github.token ?? "").trim()
+                }
                 onClick={() => connectService("github")}
               >
                 {connections.github.connected ? "Connected" : "Connect"}
@@ -301,6 +339,15 @@ export default function ImproveUpdate() {
                 onChange={(e) => updateConnectionUrl("slack", e.target.value)}
                 placeholder="https://workspace.slack.com"
               />
+              {connections.slack.url && (
+                <input
+                  style={s.integrationBoxInput}
+                  type="password"
+                  value={connections.slack.token ?? ""}
+                  onChange={(e) => updateConnectionToken("slack", e.target.value)}
+                  placeholder="Slack token / webhook (required)"
+                />
+              )}
               <button
                 style={{
                   ...s.integrationBoxBtn,
@@ -308,7 +355,11 @@ export default function ImproveUpdate() {
                   color: connections.slack.connected ? "#8b949e" : "#fff",
                   border: connections.slack.connected ? "1px solid #3d2340" : "none",
                 }}
-                disabled={connections.slack.connected}
+                disabled={
+                  connections.slack.connected ||
+                  !connections.slack.url?.trim() ||
+                  !(connections.slack.token ?? "").trim()
+                }
                 onClick={() => connectService("slack")}
               >
                 {connections.slack.connected ? "Connected" : "Connect"}
@@ -330,6 +381,15 @@ export default function ImproveUpdate() {
                 onChange={(e) => updateConnectionUrl("teams", e.target.value)}
                 placeholder="https://teams.microsoft.com/..."
               />
+              {connections.teams.url && (
+                <input
+                  style={s.integrationBoxInput}
+                  type="password"
+                  value={connections.teams.token ?? ""}
+                  onChange={(e) => updateConnectionToken("teams", e.target.value)}
+                  placeholder="Teams webhook / token (required)"
+                />
+              )}
               <button
                 style={{
                   ...s.integrationBoxBtn,
@@ -337,7 +397,11 @@ export default function ImproveUpdate() {
                   color: connections.teams.connected ? "#8b949e" : "#fff",
                   border: connections.teams.connected ? "1px solid #3d2a50" : "none",
                 }}
-                disabled={connections.teams.connected}
+                disabled={
+                  connections.teams.connected ||
+                  !connections.teams.url?.trim() ||
+                  !(connections.teams.token ?? "").trim()
+                }
                 onClick={() => connectService("teams")}
               >
                 {connections.teams.connected ? "Connected" : "Connect"}
@@ -582,10 +646,20 @@ export default function ImproveUpdate() {
                                 <span style={s.prCode}>main</span>
                               </p>
                               <div style={s.prButtons}>
-                                <button style={s.prSecondary}>View PR</button>
-                                <button style={s.prPrimary} onClick={approvePR}>
-                                  Approve (not final — review in GitHub)
-                                </button>
+                                {prCreated[m.id] ? (
+                                  <div style={s.prCreatedWrap}>
+                                    <GitBranch style={s.prIcon} />
+                                    <span style={s.prCreatedText}>Pull Request Created</span>
+                                  </div>
+                                ) : (
+                                  <button
+                                    style={s.prPrimary}
+                                    onClick={() => onCreatePullRequest(m.id)}
+                                  >
+                                    <GitBranch style={s.prIcon} />
+                                    <span>Create Pull Request</span>
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}
@@ -595,7 +669,7 @@ export default function ImproveUpdate() {
                               <span>Agent Activity Logs</span>
                             </div>
                             <div style={s.logsBody}>
-                              {logs.map((log, i) => (
+                              {(logs[m.id] ?? []).map((log, i) => (
                                 <div key={i} style={s.logRow}>
                                   <span style={s.logTime}>
                                     [{new Date().toLocaleTimeString()}]
@@ -612,7 +686,7 @@ export default function ImproveUpdate() {
                           {fixState === "deploying" && (
                             <div style={s.statusCard}>
                               <div style={s.statusTitle}>Applying changes…</div>
-                              <p style={s.statusText}>Processing your approval.</p>
+                              <p style={s.statusText}>Processing your request.</p>
                             </div>
                           )}
 
@@ -800,8 +874,37 @@ const s = {
   prText: { fontSize: 12, color: "#aaa", margin: "0 0 10px" },
   prCode: { fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif', background: "#151525", padding: "1px 4px", borderRadius: 4 },
   prButtons: { display: "flex", gap: 8, flexWrap: "wrap" },
-  prSecondary: { padding: "8px 16px", borderRadius: 8, border: "1px solid #2A2A40", background: "transparent", color: "#ccc", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif' },
-  prPrimary: { padding: "8px 16px", borderRadius: 8, border: "none", background: "#00E5CC", color: "#000", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif' },
+  prIcon: { width: 16, height: 16, marginRight: 6, display: "inline-block" },
+  prPrimary: {
+    padding: "8px 16px",
+    borderRadius: 8,
+    border: "none",
+    background: "#4F46E5",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif',
+    display: "inline-flex",
+    alignItems: "center",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+  },
+  prCreatedWrap: {
+    padding: "8px 16px",
+    borderRadius: 8,
+    border: "1px solid #16A34A",
+    background: "#022c22",
+    display: "inline-flex",
+    alignItems: "center",
+    boxShadow: "0 0 16px rgba(34,197,94,0.4)",
+    transform: "scale(1.03)",
+  },
+  prCreatedText: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#bbf7d0",
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif',
+  },
 
   statusCard: { marginTop: 10, background: "#0D0D18", border: "1px solid #1E1E2E", borderRadius: 10, padding: "12px 14px" },
   statusTitle: { fontSize: 13, fontWeight: 600, color: "#eee", marginBottom: 4 },
