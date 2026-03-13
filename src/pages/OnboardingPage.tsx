@@ -44,7 +44,7 @@ const FEED_EVENTS: FeedEvent[] = [
   { agent: 'secretShopper', delay: 950, line: '🕵️ Secret Shopper querying Claude: "best laptops under $1000"' },
   { agent: 'secretShopper', delay: 750, line: '🕵️ Claude response — Dell XPS mentioned ✅, outdated feature list ⚠️', annotation: 'outdated-info' },
   { agent: 'verifier', delay: 1100, line: '⚖️ Verifier cross-referencing AI responses with site data...' },
-  { agent: 'verifier', delay: 900, line: '⚖️ Pricing drift: ChatGPT says XPS 15 is $579, site says $599 ⚠️', annotation: 'pricing-mismatch' },
+  { agent: 'verifier', delay: 900, line: '⚖️ Pricing drift: ChatGPT says XPS 15 is $579, site says $649.99 ⚠️', annotation: 'pricing-mismatch' },
   { agent: 'verifier', delay: 900, line: '⚖️ Claude references discontinued "XPS 15 9520" model ⚠️' },
   { agent: 'verifier', delay: 750, line: '⚖️ 1 hallucination detected across 1 platform' },
   { agent: 'benchmarker', delay: 1100, line: '📊 Benchmarker analyzing competitors...' },
@@ -199,11 +199,11 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   id="websiteUrl"
-                  type="url"
+                  type="text"
                   required
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
-                  placeholder="https://yourcompany.com"
+                  placeholder="yourcompany.com"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-heading placeholder:text-text/40 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition-all duration-200"
                 />
               </div>
